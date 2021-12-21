@@ -16,25 +16,42 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-var x = 525;
-var y = 360;
+var r = 30;
 
-var rectX = canvas.width/3;
-var rectY = -30;
-
-var rect = [];
+var x = canvas.width/2;
+var y = canvas.height-r;
 
 var upPressed = false;
 var downPressed = false;
 var rightPressed = false;
 var leftPressed = false;
 
-var r = 30;
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
+var enemies = 1;
+var rectangles = [];
+
+var debug = 0;
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+function createRectangle(n) {
+    rectangles[n] = {
+        x:0, 
+        y:0, 
+        width:getRandomInt(canvas.width/30,canvas.width/10), 
+        height:canvas.height/30, 
+        status:1
+    };
+
+    rectangles[n].x = getRandomInt(0, canvas.width-rectangles[n].width);
+    rectangles[n].y = -getRandomInt(rectangles[n].height, canvas.height + enemies * 5);
+}
+
+for (var c=0; c<10000; c++) {
+    createRectangle(c);
+}
 
 function drawBall() {
     ctx.beginPath();
@@ -47,20 +64,23 @@ function drawBall() {
 
 
 function drawRect() {
-    //while (var c = 0;  )
-    ctx.beginPath();
-    ctx.rect(rectX, rectY, canvas.width/3, 30);
-    ctx.fillStyle = "#bb1c2a";
-    ctx.fill();
-    ctx.closePath();
+    for (c=0; c < enemies; c++) {
+        ctx.beginPath();
+        ctx.rect(rectangles[c].x, rectangles[c].y, rectangles[c].width, rectangles[c].height);
+        ctx.fillStyle = "#bb1c2a";
+        ctx.fill();
+        ctx.closePath();
+    }
 }
 
 
 function collisionDetection() {
-    if (y < rectY + 30 + r && y > rectY - r &&
-        x < rectX + canvas.width/3 + r && x > rectX - r) {
-        //alert("GAME OVER!");
-        location.reload();
+    for (c=0; c<enemies; c++){
+        if (y < rectangles[c].y + rectangles[c].height + r && y > rectangles[c].y - r &&
+            x < rectangles[c].x + rectangles[c].width + r && x > rectangles[c].x - r) {
+            //alert("GAME OVER!");
+            location.reload();
+        }
     }
 
 }
@@ -73,37 +93,43 @@ function drawGame() {
     collisionDetection();
     if (upPressed)  {
         if (y - r <= 0) {
-            y = r
+            y = r;
         } else {
         y -= 5;
         }
     }
     if (downPressed) {
         if (y + r >= canvas.height) {
-            y = canvas.height - r
+            y = canvas.height - r;
         } else {
         y += 5;
         }
     }
     if (rightPressed) {
         if (x + r >= canvas.width) {
-            x = canvas.width - r
+            x = canvas.width - r;
         } else {
         x += 5;
         }
     }
     if (leftPressed) {
         if (x - r <= 0) {
-            x = r
+            x = r;
         } else {
         x -= 5;
         }
     }
 
-    rectY += 5;
-    if (rectY > canvas.height) {
-        rectY = -30;
-        rectX = canvas.width * getRandomInt(3) / 3;
+    for (c=0; c<enemies; c++){
+            rectangles[c].y += 5;
+        if (rectangles[c].y > canvas.height) {
+            createRectangle(c);
+            enemies++;
+            debug++;
+            if (debug > 10) {
+                {} //debug  breakpoint
+            }
+        }
     }
     requestAnimationFrame(drawGame);
 }
