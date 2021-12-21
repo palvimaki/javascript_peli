@@ -28,13 +28,19 @@ var leftPressed = false;
 
 
 var enemies = 1;
+var bulletCount = 0;
 var rectangles = [];
+var bullet = [];
 
 var debug = 0;
+
+var xDiff = 0;
+var yDiff = 0;
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
 
 function createRectangle(n) {
     rectangles[n] = {
@@ -42,16 +48,35 @@ function createRectangle(n) {
         y:0, 
         width:getRandomInt(canvas.width/30,canvas.width/10), 
         height:canvas.height/30, 
-        status:1
+        firing:false,
     };
 
     rectangles[n].x = getRandomInt(0, canvas.width-rectangles[n].width);
     rectangles[n].y = -getRandomInt(rectangles[n].height, canvas.height + enemies * 5);
+    rectangles[n].x = rectangles[n].x;
+    rectangles[n].y = rectangles[n].y;
+}
+
+
+function createBullet(n) {
+    bullet[n] = {
+        x:0,
+        y:0,
+        deltax:0,
+        deltay:0,
+        exists:false,
+    }
+}
+
+
+for (var c=0; c<100; c++) {
+    createBullet(c);
 }
 
 for (var c=0; c<10000; c++) {
     createRectangle(c);
 }
+
 
 function drawBall() {
     ctx.beginPath();
@@ -60,6 +85,23 @@ function drawBall() {
     ctx.fill();
     //ctx.stroke();
     ctx.closePath();
+}
+
+
+function drawBullet() {
+    for (c=0; c<bulletCount; c++){
+        if (bullet[c].exists) {
+            ctx.font = "13px Arial";
+            ctx.fillStyle = "#0095DD";
+            ctx.fillText("x", bullet[c].x, bullet[c].y);
+            bullet[c].x += bullet[c].deltax;
+            bullet[c].y += bullet[c].deltay;
+            if (bullet[c].y > canvas.height) {
+                bullet[c].exists = false;
+                bulletCount -= 1;
+            }          
+        }
+    }
 }
 
 
@@ -74,13 +116,48 @@ function drawRect() {
 }
 
 
+function playerExplode() {
+    for (c=0; c<10000; c++) {
+    }   
+}
+
+
+function fire(n) {
+    bullet[bulletCount].x=rectangles[n].x;
+    bullet[bulletCount].y=rectangles[n].y;
+    xDiff = rectangles[n].x-x;
+    yDiff = rectangles[n].y-y;
+    bullet[bulletCount].deltax=xDiff/yDiff;
+    bullet[bulletCount].deltay=yDiff/xDiff;
+    if (bullet[bulletCount].x > x) {
+        bullet[bulletCount].deltay *= -1;
+    }
+    bullet[bulletCount].exists = true;
+    bulletCount += 1;
+    if (bullet[bulletCount].deltax > 5 || bullet[bulletCount].deltay > 5) {
+        bullet[bulletCount].exists = false;
+        bulletCount -= 1;
+    }   
+}
+
+
 function collisionDetection() {
     for (c=0; c<enemies; c++){
         if (y < rectangles[c].y + rectangles[c].height + r && y > rectangles[c].y - r &&
-            x < rectangles[c].x + rectangles[c].width + r && x > rectangles[c].x - r) {
-            //alert("GAME OVER!");
+            x < rectangles[c].x + rectangles[c].width + r && x > rectangles[c].x - r &&
+            bullet[c].exists) {
+            playerExplode();
             location.reload();
         }
+    }
+    for (c=0; c<bulletCount; c++) {
+        if (bullet[c].x > x-r && bullet[c].x < x+r && 
+            bullet[c].y > y-r && bullet[c].y < y+r &&
+            bullet[c].exists) {
+            playerExplode();
+            location.reload();
+
+            }
     }
 
 }
@@ -90,6 +167,7 @@ function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBall();
     drawRect();
+    drawBullet();
     collisionDetection();
     if (upPressed)  {
         if (y - r <= 0) {
@@ -122,9 +200,12 @@ function drawGame() {
 
     for (c=0; c<enemies; c++){
             rectangles[c].y += 5;
+        if (Math.random() > 0.99) {
+            fire(c);
+        }
         if (rectangles[c].y > canvas.height) {
             createRectangle(c);
-            enemies++;
+            enemies+=0.2;
             debug++;
             if (debug > 10) {
                 {} //debug  breakpoint
