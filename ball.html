@@ -10,14 +10,19 @@
     </style>
 </head>
 <body>
-<canvas id = "myCanvas" width = "1024" height = "700"></canvas>
+<canvas id = "myCanvas" width = "1035" height = "700"></canvas>
 
 <script>
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-var x = canvas.width/2;
-var y = canvas.height/2;
+var x = 525;
+var y = 360;
+
+var rectX = canvas.width/3;
+var rectY = -30;
+
+var rect = [];
 
 var upPressed = false;
 var downPressed = false;
@@ -26,6 +31,11 @@ var leftPressed = false;
 
 var r = 30;
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+
 function drawBall() {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI*2, true);
@@ -33,40 +43,69 @@ function drawBall() {
     ctx.fill();
     //ctx.stroke();
     ctx.closePath();
+}
+
+
+function drawRect() {
+    //while (var c = 0;  )
+    ctx.beginPath();
+    ctx.rect(rectX, rectY, canvas.width/3, 30);
+    ctx.fillStyle = "#bb1c2a";
+    ctx.fill();
+    ctx.closePath();
+}
+
+
+function collisionDetection() {
+    if (y < rectY + 30 + r && y > rectY - r &&
+        x < rectX + canvas.width/3 + r && x > rectX - r) {
+        //alert("GAME OVER!");
+        location.reload();
+    }
 
 }
+
 
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBall();
+    drawRect();
+    collisionDetection();
     if (upPressed)  {
         if (y - r <= 0) {
             y = r
         } else {
-        y -= 15;
+        y -= 5;
         }
     }
     if (downPressed) {
         if (y + r >= canvas.height) {
             y = canvas.height - r
         } else {
-        y += 15;
+        y += 5;
         }
     }
     if (rightPressed) {
         if (x + r >= canvas.width) {
             x = canvas.width - r
         } else {
-        x += 15;
+        x += 5;
         }
     }
     if (leftPressed) {
         if (x - r <= 0) {
             x = r
         } else {
-        x -= 15;
+        x -= 5;
         }
     }
+
+    rectY += 5;
+    if (rectY > canvas.height) {
+        rectY = -30;
+        rectX = canvas.width * getRandomInt(3) / 3;
+    }
+    requestAnimationFrame(drawGame);
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -103,7 +142,8 @@ function keyUpHandler(e) {
 }
 
 
-setInterval(drawGame, 30);
+//setInterval(drawGame, 30);
+drawGame();
 </script>
 </body>
 </html>
